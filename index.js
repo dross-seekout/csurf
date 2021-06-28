@@ -50,6 +50,8 @@ function csurf (options) {
   // get value getter
   var value = opts.value || defaultValue
 
+  var logClient = opts.logClient
+
   // token repo
   var tokens = new Tokens(opts)
 
@@ -109,9 +111,15 @@ function csurf (options) {
 
     // verify the incoming token
     if (!ignoreMethod[req.method] && !tokens.verify(secret, value(req))) {
+      logClient.trackEvent({ name: "csrfMitigation", properties: { url: req.url, headers: JSON.stringify(req.headers) }});
+      
+      // Don't actually fail the request for now, just log missing / broken token
+      /*
       return next(createError(403, 'invalid csrf token', {
         code: 'EBADCSRFTOKEN'
       }))
+      */
+
     }
 
     next()
